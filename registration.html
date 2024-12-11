@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Registration Form </title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: lightgoldenrodyellow;
+            min-height: 100vh;
+        }
+        .header {
+            background-color: powderblue;
+            padding: 20px;
+            border-bottom: 5px solid rgb(9, 130, 170);
+            text-align: center;
+        }
+        .header h2 {
+            font-weight: bold;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            width: 400px;
+            max-width: 100%;
+            overflow: hidden;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        .form {
+            padding: 30px 40px;
+        }
+        .ram {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .ram label {
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .ram input:not(.terms) {
+            display: block;
+            border-radius: 4px;
+            border: 2px solid silver;
+            font-size: 14px;
+            width: 100%;
+            padding: 10px;
+        }
+        .ram small {
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            visibility: hidden;
+            color: red;
+        }
+        .form .button {
+            background-color: rgb(65, 8, 220);
+            border: none;
+            color: white;
+            padding: 10px;
+            display: block;
+            width: 100%;
+            cursor: pointer;
+        }
+        .ram.error small {
+            visibility: visible;
+        }
+        .ram.error input {
+            border-color: red;
+        }
+        .ram.success input {
+            border-color: green;
+        }
+        .entries {
+            width: 80%;
+            max-width: 1000px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        table th {
+            background-color: #f4f4f4;
+        }
+     </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Register Here</h2>
+        </div>
+        <form class="form" id="form">
+            <div class="ram">
+                <label>Username</label>
+                <input type="text" id="uname">
+                <small>Error message</small>
+            </div>
+            <div class="ram">
+                <label>Email</label>
+                <input type="email" id="email">
+                <small>Error message</small>
+            </div>
+            <div class="ram">
+                <label>Date of Birth</label>
+                <input type="date" id="dob">
+                <small>Error message</small>
+            </div>
+            <div class="ram">
+                <label>Password</label>
+                <input type="password" id="password">
+                <small>Error message</small>
+            </div>
+            <div class="ram">
+                <label>Confirm Password</label>
+                <input type="password" id="cpassword">
+                <small>Error message</small>
+            </div>
+            <div class="ram">
+                <input type="checkbox" id="tc" class="terms">
+                <label>I agree to terms and conditions</label>
+                <small>Error message</small>
+            </div>
+            <input type="submit" class="button" value="Register">
+        </form>
+    </div>
+
+    <div class="entries">
+        <h2>Entries</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Date of Birth</th>
+                    <th>Accepted Terms</th>
+                </tr>
+            </thead>
+            <tbody id="entries-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const form = document.getElementById("form");
+        const uname = document.getElementById("uname");
+        const email = document.getElementById("email");
+        const dob = document.getElementById("dob");
+        const password = document.getElementById("password");
+        const cpassword = document.getElementById("cpassword");
+        const tc = document.getElementById("tc");
+        const entriesBody = document.getElementById("entries-body");
+
+        // Load existing entries from local storage
+        document.addEventListener("DOMContentLoaded", () => {
+            loadEntries();
+        });
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (validateForm()) {
+                saveEntry();
+                form.reset();
+                loadEntries();
+            }
+        });
+
+        function validateForm() {
+            let isValid = true;
+
+            if (uname.value.trim() === "") {
+                setError(uname, "Username cannot be empty");
+                isValid = false;
+            } else {
+                setSuccess(uname);
+            }
+
+            if (email.value.trim() === "") {
+                setError(email, "Email cannot be empty");
+                isValid = false;
+            } else if (!isValidEmail(email.value.trim())) {
+                setError(email, "Enter a valid email");
+                isValid = false;
+            } else {
+                setSuccess(email);
+            }
+
+            if (dob.value.trim() === "") {
+                setError(dob, "Date of Birth cannot be empty");
+                isValid = false;
+            } else {
+                setSuccess(dob);
+            }
+
+            if (password.value.trim() === "") {
+                setError(password, "Password cannot be empty");
+                isValid = false;
+            } else {
+                setSuccess(password);
+            }
+
+            if (cpassword.value.trim() !== password.value.trim()) {
+                setError(cpassword, "Passwords do not match");
+                isValid = false;
+            } else {
+                setSuccess(cpassword);
+            }
+
+            if (!tc.checked) {
+                setError(tc, "You must accept the terms and conditions");
+                isValid = false;
+            } else {
+                setSuccess(tc);
+            }
+
+            return isValid;
+        }
+
+        function setError(input, message) {
+            const parent = input.parentElement;
+            const small = parent.querySelector("small");
+            small.textContent = message;
+            parent.classList.add("error");
+            parent.classList.remove("success");
+        }
+
+        function setSuccess(input) {
+            const parent = input.parentElement;
+            parent.classList.add("success");
+            parent.classList.remove("error");
+        }
+
+        function isValidEmail(email) {
+            const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return re.test(email);
+        }
+
+        function saveEntry() {
+            const entry = {
+                username: uname.value.trim(),
+                email: email.value.trim(),
+                dob: dob.value.trim(),
+                terms: tc.checked
+            };
+
+            const entries = JSON.parse(localStorage.getItem("entries")) || [];
+            entries.push(entry);
+            localStorage.setItem("entries", JSON.stringify(entries));
+        }
+
+        function loadEntries() {
+            const entries = JSON.parse(localStorage.getItem("entries")) || [];
+            entriesBody.innerHTML = "";
+
+            entries.forEach((entry) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${entry.username}</td>
+                    <td>${entry.email}</td>
+                    <td>${entry.dob}</td>
+                    <td>${entry.terms ? "Yes" : "No"}</td>
+                `;
+                entriesBody.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
